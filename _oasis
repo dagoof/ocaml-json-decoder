@@ -1,0 +1,37 @@
+OASISFormat:  0.4
+OCamlVersion: >= 4.02.3
+Name:         json_decoder
+Version:      0.1
+Maintainers:  Peter DeGroff
+Homepage:     http://github.com/dagoof/ocaml_json_decoder
+Synopsis:     JSON decoder combinators inspired by Elm's Json.Decode
+Authors:      peter.degroff@gmail.com
+License:      BSD-3-clause
+BuildTools:   ocamlbuild
+
+Library json_decoder
+  Path:           src
+  Modules:        Json_decoder
+  CompiledObject: byte
+  BuildDepends:   yojson, result
+
+Document api
+  Title:                Documentation and API reference
+  Type:                 ocamlbuild (0.4)
+  BuildTools+:          ocamldoc
+  Install:              true
+  XOCamlBuildPath:      src
+  XOCamlBuildLibraries: json_decoder
+
+Executable test_json_decoder
+  Path:             tests
+  MainIs:           test_json_decoder.ml
+  Build$:           flag(tests)
+  CompiledObject:   best
+  Install:          false
+  BuildDepends:     json_decoder, alcotest
+
+Test test_json_decoder
+  Run$:             flag(tests)
+  Command:          $test_json_decoder
+  WorkingDirectory: tests

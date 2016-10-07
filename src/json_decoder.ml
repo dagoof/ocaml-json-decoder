@@ -3,18 +3,28 @@ open Yojson
 let always x y = x
 
 module ResultC = struct
-    let (>>=) = Rresult.R.bind
+    let map f = function
+        | Result.Ok v -> Result.Ok (f v)
+        | Result.Error e as err -> err
 
-    let (>>|) t f = Rresult.R.map f t
+    let bind f = function
+        | Result.Ok v -> f v
+        | Result.Error e as err -> err
 
-    let (>>!) t f = Rresult.R.reword_error f t
+    let is_ok = function
+        | Result.Ok v -> true
+        | Result.Error v -> false
+
+    let (>>=) t f = bind f t
+
+    let (>>|) t f = map f t
 
     let (<*>) f t = f >>= fun f -> t >>| f
 
     let (<$>) f t = t >>| f
 end
 
-module Decoder : sig 
+module Decoder : sig
     type 'a t
     type value
 
@@ -117,7 +127,7 @@ end = struct
             | `Assoc a ->
                 let value = try
                     decode decoder @@ List.assoc key a
-                with 
+                with
                     Not_found ->
                         let keys =
                             a
@@ -153,7 +163,7 @@ end = struct
             let values =
                 List.map ( fun decoder -> decode decoder value ) decoders in
             try
-                List.find Rresult.R.is_ok values
+                List.find ResultC.is_ok values
             with
                 Not_found -> Result.Error "no suitable decoder chosen"
         end
@@ -174,7 +184,7 @@ end = struct
 
     let and_then fn decoder =
         Decoder begin fun value ->
-            let ( Decoder callback ) = 
+            let ( Decoder callback ) =
                 match decode decoder value with
                 | Result.Ok c -> fn c
                 | Result.Error e -> fail e
@@ -203,9 +213,9 @@ end = struct
     let value s = Yojson.Basic.from_string s
 
     let value_of_yojson v = v
-    
+
     let decode_string t s =
-        decode t @@ value s 
+        decode t @@ value s
 end
 
 module Obj = struct

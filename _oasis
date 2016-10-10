@@ -8,6 +8,7 @@ Synopsis:     JSON decoder combinators inspired by Elm's Json.Decode
 Authors:      peter.degroff@gmail.com
 License:      BSD-3-clause
 BuildTools:   ocamlbuild
+Plugins:      META (0.4), DevFiles (0.4)
 
 Library json_decoder
   Path:           src

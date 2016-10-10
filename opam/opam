@@ -1,0 +1,33 @@
+opam-version: "1.2"
+name: "json_decoder"
+version: "0.1"
+maintainer: "peter.degroff@gmail.com"
+authors: [ "peter.degroff@gmail.com" ]
+license: "BSD-3-clause"
+homepage: "http://github.com/dagoof/ocaml_json_decoder"
+bug-reports: "http://github.com/dagoof/ocaml_json_decoder"
+build: [
+  ["oasis" "setup"]
+  ["ocaml" "setup.ml" "-configure" "--prefix" prefix]
+  ["ocaml" "setup.ml" "-build"]
+]
+install: ["ocaml" "setup.ml" "-install"]
+remove: [
+  ["ocamlfind" "remove" "json_decoder"]
+]
+build-test: [
+  ["oasis" "setup"]
+  ["ocaml" "setup.ml" "-configure" "--enable-tests"]
+  ["ocaml" "setup.ml" "-build"]
+  ["ocaml" "setup.ml" "-test"]
+]
+build-doc: [ "ocaml" "setup.ml" "-doc" ]
+depends: [
+  ("alcotest" {test & = "0.4.11"} | "alcotest" {test & = "0.4.10"} | "alcotest" {test & = "0.4.9"} | "alcotest" {test & = "0.4.8"} | "alcotest" {test & = "0.4.7"} | "alcotest" {test & = "0.4.6"} | "alcotest" {test & = "0.4.5"} | "alcotest" {test & = "0.4.4"} | "alcotest" {test & = "0.4.3"} | "alcotest" {test & = "0.4.2"} | "alcotest" {test & = "0.4.1"} | "alcotest" {test & = "0.4.0"} | "alcotest" {test & = "0.3.3"} | "alcotest" {test & = "0.3.2"} | "alcotest" {test & = "0.3.1"} | "alcotest" {test & = "0.3.0"} | "alcotest" {test & = "0.2.0"} | "alcotest" {test & = "0.1.0"})
+  "oasis" {build & >= "0.4"}
+  "ocamlbuild" {build}
+  "ocamlfind" {build}
+  "result"
+  "yojson"
+]
+available: [ ocaml-version >= "4.02.3" ]

@@ -11,8 +11,8 @@ BuildTools:   ocamlbuild
 
 Library json_decoder
   Path:           src
+  FindlibName:    json_decoder
   Modules:        Json_decoder
-  CompiledObject: byte
   BuildDepends:   yojson, result
 
 Document api

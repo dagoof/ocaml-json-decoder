@@ -31,6 +31,30 @@ let simple_decoders =
         check Alcotest.bool
         Decoder.(decode_string bool "false")
         ( Result.Ok false )
+    ; "list-int-index", `Quick,
+        check Alcotest.int
+        Decoder.(decode_string (index 1 int) "[1,48,3]")
+        ( Result.Ok 48 )
+    ; "dict-field", `Quick,
+        check Alcotest.float
+        Decoder.(decode_string (field "lat" float) "{\"lat\": 52.3}")
+        ( Result.Ok 52.3 )
+    ; "dict-field", `Quick,
+        check Alcotest.float
+        Decoder.(decode_string (field "lng" float) "{\"lat\": 52.3}")
+        ( Result.Error "key lng does not exist in object lat " )
+    ; "list", `Quick,
+        check Alcotest.(list int)
+        Decoder.(decode_string (list int) "[1,48,3]")
+        ( Result.Ok [1;48;3] )
+    ; "array", `Quick,
+        check Alcotest.(array int)
+        Decoder.(decode_string (array int) "[1,48,3]")
+        ( Result.Ok [|1;48;3|] )
+    ; "pairs", `Quick,
+        check Alcotest.(list (pair string int))
+        Decoder.(decode_string (pairs int) "{\"lat\": 5, \"lng\": 15}")
+        ( Result.Ok ["lat",5; "lng",15] )
     ]
 
 

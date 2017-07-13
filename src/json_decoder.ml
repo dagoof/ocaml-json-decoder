@@ -1,5 +1,9 @@
 open Yojson
 
+module Dict = Map.Make(String)
+
+type 'a dict = 'a Dict.t
+
 let always x y = x
 
 module ResultC = struct
@@ -24,39 +28,11 @@ module ResultC = struct
     let (<$>) f t = t >>| f
 end
 
-module Decoder : sig
-    type 'a t
-    type value
-
-    val string : string t
-    val float : float t
-    val int : int t
-    val bool : bool t
-    val null : 'a -> 'a t
-    val option : 'a t -> 'a option t
-    val list : 'a t -> 'a list t
-    val field : string -> 'a t -> 'a t
-    val (@=) : string -> 'a t -> 'a t
-    val at : string list -> 'a t -> 'a t
-    val index : int -> 'a t -> 'a t
-    val one_of : 'a t list -> 'a t
-    val succeed : 'a -> 'a t
-    val fail : string -> 'a t
-    val map : ( 'a -> 'b ) -> 'a t -> 'b t
-    val and_then : ('a -> 'b t) -> 'a t -> 'b t
-    val apply : ('a -> 'b) t -> 'a t -> 'b t
-    val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
-    val (>>|) : 'a t -> ('a -> 'b) -> 'b t
-    val (<$>) : ('a -> 'b) -> 'a t -> 'b t
-    val (<*>) : ('a -> 'b) t -> 'a t -> 'b t
-    val (|.) : ('a -> 'b) t -> 'a t -> 'b t
-    val decode : 'a t -> value -> ( 'a, string ) Result.result
-    val value : string -> value
-    val value_of_yojson : Yojson.Basic.json -> value
-    val decode_string : 'a t -> string -> ( 'a, string ) Result.result
-
-end = struct
+module Decoder = struct
     type value = Yojson.Basic.json
+
+    type 'a t =
+        | Decoder of ( value -> ('a, string) Result.result )
 
     let describe_value = function
         | `String v -> "string"
@@ -71,9 +47,6 @@ end = struct
         describe_value value
         |> Printf.sprintf s
         |> ( fun s -> Result.Error s )
-
-    type 'a t =
-        | Decoder of ( value -> ('a, string) Result.result )
 
     let decode ( Decoder f ) value = f value
 
@@ -107,20 +80,56 @@ end = struct
             | otherwise -> value_error "%s is not null" otherwise
         end
 
+    let map f decoder =
+        let open ResultC in
+        Decoder begin fun value ->
+            decode decoder value >>| f
+        end
+
     let list decoder =
         Decoder begin function
             | `List values ->
                 let open ResultC in
                 let push x xs = x :: xs in
 
-                List.fold_left begin fun acc value ->
+                List.fold_right begin fun value acc ->
                     push <$> decode decoder value <*> acc
                 end
-                ( Result.Ok [] )
                 values
-                >>| List.rev
+                ( Result.Ok [] )
             | otherwise -> value_error "%s is not a list" otherwise
         end
+
+    let dict decoder =
+        Decoder begin function
+            | `Assoc values ->
+                let open ResultC in
+                let add key value dct = Dict.add key value dct in
+
+                List.fold_left begin fun dct (key, value) ->
+                    add key <$> decode decoder value <*> dct
+                end
+                ( Result.Ok Dict.empty )
+                values
+            | otherwise -> value_error "%s is not a dict" otherwise
+        end
+
+    let pairs decoder =
+        Decoder begin function
+            | `Assoc values ->
+                let open ResultC in
+                let push key value sofar = (key, value) :: sofar in
+
+                List.fold_right begin fun (key, value) acc ->
+                    push key <$> decode decoder value <*> acc
+                end
+                values
+                ( Result.Ok [] )
+            | otherwise -> value_error "%s is not a dict" otherwise
+        end
+
+    let array decoder =
+        map Array.of_list ( list decoder )
 
     let field key decoder =
         Decoder begin function
@@ -182,6 +191,11 @@ end = struct
             Result.Ok opt
         end
 
+    let value =
+        Decoder begin fun value ->
+            Result.Ok value
+        end
+
     let and_then fn decoder =
         Decoder begin fun value ->
             let ( Decoder callback ) =
@@ -190,12 +204,6 @@ end = struct
                 | Result.Error e -> fail e
             in
             callback value
-        end
-
-    let map f decoder =
-        let open ResultC in
-        Decoder begin fun value ->
-            decode decoder value >>| f
         end
 
     let (>>=) decoder fn = and_then fn decoder
@@ -210,12 +218,14 @@ end = struct
 
     let apply f t = f <*> t
 
-    let value s = Yojson.Basic.from_string s
+    let value_of_string s = Yojson.Basic.from_string s
+
+    let value_to_yojson v = v
 
     let value_of_yojson v = v
 
     let decode_string t s =
-        decode t @@ value s
+        decode t @@ value_of_string s
 end
 
 module Obj = struct

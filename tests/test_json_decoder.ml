@@ -16,7 +16,7 @@ let simple_decoders =
         Decoder.(decode_string int "46")
         ( Result.Ok 46 )
     ; "float", `Quick,
-        check Alcotest.float
+        check (Alcotest.float 1.)
         Decoder.(decode_string float "2.3")
         ( Result.Ok 2.3 )
     ; "string", `Quick,
@@ -36,11 +36,11 @@ let simple_decoders =
         Decoder.(decode_string (index 1 int) "[1,48,3]")
         ( Result.Ok 48 )
     ; "dict-field", `Quick,
-        check Alcotest.float
+        check (Alcotest.float 1.)
         Decoder.(decode_string (field "lat" float) "{\"lat\": 52.3}")
         ( Result.Ok 52.3 )
     ; "dict-field", `Quick,
-        check Alcotest.float
+        check (Alcotest.float 1.)
         Decoder.(decode_string (field "lng" float) "{\"lat\": 52.3}")
         ( Result.Error "key lng does not exist in object lat " )
     ; "list", `Quick,

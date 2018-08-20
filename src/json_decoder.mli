@@ -1,3 +1,5 @@
+(* Json_decoder is a json decoder. yeah *)
+
 module Dict : Map.S with type key = string
 
 type 'a dict = 'a Dict.t

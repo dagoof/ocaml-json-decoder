@@ -1,23 +1,21 @@
-open Yojson
-
 module Dict = Map.Make(String)
 
 type 'a dict = 'a Dict.t
 
-let always x y = x
+let always x _ = x
 
 module ResultC = struct
     let map f = function
         | Result.Ok v -> Result.Ok (f v)
-        | Result.Error e as err -> err
+        | Result.Error _ as err -> err
 
     let bind f = function
         | Result.Ok v -> f v
-        | Result.Error e as err -> err
+        | Result.Error _ as err -> err
 
     let is_ok = function
-        | Result.Ok v -> true
-        | Result.Error v -> false
+        | Result.Ok _ -> true
+        | Result.Error _ -> false
 
     let (>>=) t f = bind f t
 
@@ -35,13 +33,13 @@ module Decoder = struct
         | Decoder of ( value -> ('a, string) Result.result )
 
     let describe_value = function
-        | `String v -> "string"
-        | `Float v -> "float"
-        | `Int v -> "int"
-        | `Bool v -> "bool"
+        | `String _ -> "string"
+        | `Float _ -> "float"
+        | `Int _ -> "int"
+        | `Bool _ -> "bool"
         | `Null -> "null"
-        | `Assoc v -> "object"
-        | `List v -> "list"
+        | `Assoc _ -> "object"
+        | `List _ -> "list"
 
     let value_error s value =
         describe_value value
@@ -159,7 +157,7 @@ module Decoder = struct
             | `List values ->
                 let value = try
                     decode decoder @@ List.nth values i
-                with Failure e ->
+                with Failure _ ->
                     Result.Error "index out of bounds"
                 in
                 value
@@ -186,7 +184,7 @@ module Decoder = struct
             let opt =
                 match decode decoder value with
                 | Result.Ok c -> Some c
-                | Result.Error e -> None
+                | Result.Error _ -> None
             in
             Result.Ok opt
         end
@@ -210,11 +208,11 @@ module Decoder = struct
 
     let (>>|) t f = map f t
 
-    let (<$>) = map
+    (* let (<$>) = map *)
 
     let (<*>) f t = f >>= fun f -> t >>| f
 
-    let (|.) = (<*>)
+    (* let (|.) = (<*>) *)
 
     let apply f t = f <*> t
 
@@ -228,6 +226,7 @@ module Decoder = struct
         decode t @@ value_of_string s
 end
 
+(*
 module Obj = struct
     open Decoder
 
@@ -261,3 +260,4 @@ module Obj = struct
 end
 
 include Obj
+*)

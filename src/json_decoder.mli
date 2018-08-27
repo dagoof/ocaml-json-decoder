@@ -46,6 +46,7 @@ module Decoder : sig
     val map : ( 'a -> 'b ) -> 'a t -> 'b t
     val and_then : ('a -> 'b t) -> 'a t -> 'b t
     val apply : ('a -> 'b) t -> 'a t -> 'b t
+    val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
 
     (* object *)
     val mapN : 'fn -> 'fn t

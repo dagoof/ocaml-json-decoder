@@ -35,96 +35,109 @@ let succeed
     (Result.Ok output)
 
 let primitives =
-  [ test_case
+  [ succeed
       ~label:"int"
       ~descr:"decode a natural int"
       Alcotest.int
-      Decoder.(decode_string int "23")
-      (Result.Ok 23)
+      Decoder.int
+      "23" 23
   ; succeed
-      ~label:"int wow"
-      Alcotest.int
-      Decoder.int "23" 23
-  ; test_case
       ~label:"int"
       ~descr:"decode a negative int"
       Alcotest.int
-      Decoder.(decode_string int "-46")
-      ( Result.Ok ~-46 )
-  ; test_case
+      Decoder.int
+      "-46" ~-46
+  ; succeed
       ~label:"float"
       ~descr:"decode a float with some precision"
       Alcotest.(float 1.)
-      Decoder.(decode_string float "2.3")
-      ( Result.Ok 2.3 )
-  ; test_case
+      Decoder.float
+      "2.3" 2.3
+  ; succeed
       ~label:"string"
       ~descr:"decodes a plain string"
       Alcotest.string
-      Decoder.(decode_string string "\"twenty-three\"")
-      ( Result.Ok "twenty-three" )
-  ; test_case
+      Decoder.string
+      "\"twenty-three\""
+      "twenty-three"
+  ; succeed
       ~label:"true"
       ~descr:"decodes a true bool"
       Alcotest.bool
-      Decoder.(decode_string bool "true")
-      ( Result.Ok true )
-  ; test_case
+      Decoder.bool
+      "true" true
+  ; succeed
       ~label:"false"
       ~descr:"decodes a false bool"
       Alcotest.bool
-      Decoder.(decode_string bool "false")
-      ( Result.Ok false )
+      Decoder.bool
+      "false" false
   ]
 
 let containers =
-  [ test_case
-      ~label:"list-int-index"
+  [ succeed
+      ~label:"int list index"
       Alcotest.int
-      Decoder.(decode_string (index 1 int) "[1,48,3]")
-      ( Result.Ok 48 )
-  ; test_case
-      ~label:"dict-field"
+      Decoder.(index 1 int)
+      "[1,48,3]" 48
+  ; succeed
+      ~label:"dict field"
       Alcotest.(float 1.)
-      Decoder.(decode_string (field "lat" float) "{\"lat\": 52.3}")
-      ( Result.Ok 52.3 )
+      Decoder.(field "lat" float)
+      "{\"lat\": 52.3}" 52.3
   ; test_case
-      ~label:"dict-field"
+      ~label:"dict field"
       Alcotest.(float 1.)
       Decoder.(decode_string (field "lng" float) "{\"lat\": 52.3}")
       ( Result.Error "key lng does not exist in object lat " )
-  ; test_case
+  ; succeed
+      ~label:"infix dict selector"
+      ~descr:"select an item inside an object with infix field selector"
+      Alcotest.string
+      Decoder.("name" @= string)
+      "{\"name\": \"Frederick\"}"
+      "Frederick"
+  ; succeed
       ~label:"list"
       Alcotest.(list int)
-      Decoder.(decode_string (list int) "[1,48,3]")
-      ( Result.Ok [1;48;3] )
-  ; test_case
+      Decoder.(list int)
+      "[1,48,3]" [1;48;3]
+  ; succeed
       ~label:"array"
       Alcotest.(array int)
-      Decoder.(decode_string (array int) "[1,48,3]")
-      ( Result.Ok [|1;48;3|] )
-  ; test_case
+      Decoder.(array int)
+      "[1,48,3]" [|1;48;3|]
+  ; succeed
       ~label:"pairs"
       Alcotest.(list (pair string int))
-      Decoder.(decode_string (pairs int) "{\"lat\": 5, \"lng\": 15}")
-      ( Result.Ok ["lat",5; "lng",15] )
-  ; test_case
-      ~label:"mapN"
-      Alcotest.string
-      Decoder.(decode_string (
-          mapN (Printf.sprintf "{lat:%d, lng:%d}")
-          ||> "lat" @= int
-          ||> "lng" @= int
-        )
-          "{\"lat\": 5, \"lng\": 15}"
-        )
-      ( Result.Ok "{lat:5, lng:15}" )
+      Decoder.(pairs int)
+      "{\"lat\": 5, \"lng\": 15}" ["lat",5; "lng",15]
   ]
 
 
+let combinators =
+  [ succeed
+      ~label:"mapN"
+      Alcotest.string
+      Decoder.(
+        mapN (Printf.sprintf "{lat:%d, lng:%d}")
+        ||> "lat" @= int
+        ||> "lng" @= int
+      )
+      "{\"lat\": 5, \"lng\": 15}"
+      "{lat:5, lng:15}"
+  ; succeed
+      ~label:"and_then"
+      ~descr:"select a second field when an initial one is present"
+      Alcotest.int
+      Decoder.("name" @= string >>= fun _ -> "age" @= int)
+      "{\"name\": \"Frederick\", \"age\": 32}"
+      32
+  ]
 
 let () =
     Alcotest.run "json_decoder"
     [ "primitives", primitives
     ; "containers", containers
+    ; "combinators", combinators
     ]

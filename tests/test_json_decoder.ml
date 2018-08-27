@@ -1,63 +1,121 @@
 open Json_decoder
 
-let check ?(label="decoder") checker got expected () =
+let check2 checker label got expected () =
   Alcotest.(check @@ result checker string )
     label
     got
     expected
 
-let simple_decoders =
-  let checker = check ~label:"primitive decoder" in
-  [ "int", `Quick,
-    checker Alcotest.int
+let check_result checker label got expected () =
+  Alcotest.(check @@ result checker string)
+    label
+    got
+    expected
+
+let tc
+    ~label
+    ?(speed=`Quick)
+    ?(descr="")
+    checker
+    got
+    expected =
+  Alcotest.(
+    test_case
+      label
+      speed
+      (check_result checker descr got expected)
+  )
+
+(*
+let succeed =
+    ~label
+    ~descr
+    checker
+    decoder
+    content
+    output =
+
+    tc
+      ~label ~descr
+      checker
+      Decoder.(decode_string decoder content)
+      output
+*)
+
+
+let primitives =
+  [ tc
+      ~label:"int"
+      ~descr:"decode a natural int"
+      Alcotest.int
       Decoder.(decode_string int "23")
-      ( Result.Ok 23 )
-  ; "int", `Quick,
-    checker Alcotest.int
-      Decoder.(decode_string int "46")
-      ( Result.Ok 46 )
-  ; "float", `Quick,
-    checker (Alcotest.float 1.)
+      (Result.Ok 23)
+  ; tc
+      ~label:"int"
+      ~descr:"decode a negative int"
+      Alcotest.int
+      Decoder.(decode_string int "-46")
+      ( Result.Ok ~-46 )
+  ; tc
+      ~label:"float"
+      ~descr:"decode a float with some precision"
+      Alcotest.(float 1.)
       Decoder.(decode_string float "2.3")
       ( Result.Ok 2.3 )
-  ; "string", `Quick,
-    checker Alcotest.string
+  ; tc
+      ~label:"string"
+      ~descr:"decodes a plain string"
+      Alcotest.string
       Decoder.(decode_string string "\"twenty-three\"")
       ( Result.Ok "twenty-three" )
-  ; "bool-true", `Quick,
-    checker Alcotest.bool
+  ; tc
+      ~label:"true"
+      ~descr:"decodes a true bool"
+      Alcotest.bool
       Decoder.(decode_string bool "true")
       ( Result.Ok true )
-  ; "bool-false", `Quick,
-    checker Alcotest.bool
+  ; tc
+      ~label:"false"
+      ~descr:"decodes a false bool"
+      Alcotest.bool
       Decoder.(decode_string bool "false")
       ( Result.Ok false )
-  ; "list-int-index", `Quick,
-    checker Alcotest.int
+  ]
+
+let containers =
+  [ tc
+      ~label:"list-int-index"
+      Alcotest.int
       Decoder.(decode_string (index 1 int) "[1,48,3]")
       ( Result.Ok 48 )
-  ; "dict-field", `Quick,
-    checker (Alcotest.float 1.)
+  ; tc
+      ~label:"dict-field"
+      Alcotest.(float 1.)
       Decoder.(decode_string (field "lat" float) "{\"lat\": 52.3}")
       ( Result.Ok 52.3 )
-  ; "dict-field", `Quick,
-    checker (Alcotest.float 1.)
+  ; tc
+      ~label:"dict-field"
+      Alcotest.(float 1.)
       Decoder.(decode_string (field "lng" float) "{\"lat\": 52.3}")
       ( Result.Error "key lng does not exist in object lat " )
-  ; "list", `Quick,
-    checker Alcotest.(list int)
+  ; tc
+      ~label:"list"
+      Alcotest.(list int)
       Decoder.(decode_string (list int) "[1,48,3]")
       ( Result.Ok [1;48;3] )
-  ; "array", `Quick,
-    checker Alcotest.(array int)
+  ; tc
+      ~label:"array"
+      Alcotest.(array int)
       Decoder.(decode_string (array int) "[1,48,3]")
       ( Result.Ok [|1;48;3|] )
-  ; "pairs", `Quick,
-    checker Alcotest.(list (pair string int))
+  ; tc
+      ~label:"pairs"
+      Alcotest.(list (pair string int))
       Decoder.(decode_string (pairs int) "{\"lat\": 5, \"lng\": 15}")
       ( Result.Ok ["lat",5; "lng",15] )
-  ; "mapN", `Quick,
-    checker Alcotest.string
+  ; tc
+      ~label:"mapN"
+      Alcotest.string
       Decoder.(decode_string (
           mapN (Printf.sprintf "{lat:%d, lng:%d}")
           ||> "lat" @= int
@@ -69,7 +127,17 @@ let simple_decoders =
   ]
 
 
+
+(*
+  [ succeed
+      ~label:"int"
+      ~descr:"decode a plain int"
+      Alcotest.int
+      Decoder.int "23" 23
+  ]
+   *)
 let () =
-    Alcotest.run "test suite"
-    [ "primitives", simple_decoders
+    Alcotest.run "json_decoder"
+    [ "primitives", primitives
+    ; "containers", containers
     ]

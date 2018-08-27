@@ -3,3 +3,5 @@ tests/_tests
 *.native
 setup.data
 setup.log
+.merlin
+*.install

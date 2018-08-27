@@ -1,10 +1,12 @@
 opam-version: "1.2"
 name: "json_decoder"
-version: "0.1"
 maintainer: "peter.degroff@gmail.com"
-authors: [ "peter.degroff@gmail.com" ]
-license: "BSD-3-clause"
-homepage: "http://github.com/dagoof/ocaml_json_decoder"
+authors: ["Peter DeGroff"]
+license: "ISC"
+homepage: "https://github.com/dagoof/ocaml-json-decoder"
+bug-reports: "https://github.com/dagoof/ocaml-json-decoder/issues"
+dev-repo: "https://github.com/dagoof/ocaml-json-decoder.git"
+doc: "https://dagoof.github.io/ocaml-json-decoder/doc"
 
 build: [
   ["dune" "subst"] {pinned}

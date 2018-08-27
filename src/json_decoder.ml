@@ -208,11 +208,11 @@ module Decoder = struct
 
     let (>>|) t f = map f t
 
-    (* let (<$>) = map *)
-
     let (<*>) f t = f >>= fun f -> t >>| f
 
-    (* let (|.) = (<*>) *)
+    let mapN f = succeed f
+
+    let (||>) f t = f <*> t
 
     let apply f t = f <*> t
 

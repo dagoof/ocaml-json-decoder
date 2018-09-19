@@ -114,9 +114,65 @@ let containers =
       "{\"lat\": 5, \"lng\": 15}" ["lat",5; "lng",15]
   ]
 
+let inconsistents =
+  [ succeed
+      ~label:"optional"
+      ~descr:"decode a value if it exists"
+      Alcotest.(option string)
+      Decoder.(option @@ "name" @= string)
+      "{\"name\": \"Frederick\", \"age\": 32}"
+      (Some "Frederick")
+  ; succeed
+      ~label:"one_of"
+      ~descr:"try a set of decoders"
+      Alcotest.(list string)
+      Decoder.(
+        list @@
+        one_of
+          [ string
+          ; mapN (Printf.sprintf "%s %s")
+            ||> "name" @= string
+            ||> "last_name" @= string
+          ; "name" @= string
+          ]
+      )
+      "[
+      \"Jennifer\",
+      {\"name\": \"Christine\", \"last_name\": \"Ableton\"},
+      {\"name\": \"Frederick\", \"age\": 32}
+      ]
+      "
+      ["Jennifer"; "Christine Ableton"; "Frederick"]
+  ; succeed
+      ~label:"one_of with errors ignored"
+      ~descr:"silently drop badly decoded fields"
+      Alcotest.(list string)
+      Decoder.(
+        list @@
+        one_of
+          [ string
+          ; mapN (Printf.sprintf "%s %s")
+            ||> "name" @= string
+            ||> "last_name" @= string
+          ; "name" @= string
+          ]
+      )
+      "[
+      \"Jennifer\",
+      {\"name\": \"Christine\", \"last_name\": \"Ableton\"},
+      {\"name\": \"Frederick\", \"age\": 32}
+      ]
+      "
+      ["Jennifer"; "Christine Ableton"; "Frederick"]
+  ]
 
 let combinators =
   [ succeed
+      ~label:"map decoded value"
+      Alcotest.string
+      Decoder.(map string_of_int int)
+      "32" "32"
+  ; succeed
       ~label:"mapN"
       Alcotest.string
       Decoder.(
@@ -136,8 +192,9 @@ let combinators =
   ]
 
 let () =
-    Alcotest.run "json_decoder"
+  Alcotest.run "json_decoder"
     [ "primitives", primitives
     ; "containers", containers
+    ; "inconsistent structure", inconsistents
     ; "combinators", combinators
     ]

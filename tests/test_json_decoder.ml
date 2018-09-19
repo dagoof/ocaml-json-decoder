@@ -1,4 +1,4 @@
-open Json_decoder
+module Decoder = Json_decoder
 
 let check_result checkable label got expected () =
   Alcotest.(check @@ result checkable string)

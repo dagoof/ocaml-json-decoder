@@ -4,7 +4,7 @@ type 'a dict = 'a Dict.t
 
 let always x _ = x
 
-module ResultC = struct
+module Results = struct
     let map f = function
         | Result.Ok v -> Result.Ok (f v)
         | Result.Error _ as err -> err
@@ -79,7 +79,7 @@ module Decoder = struct
         end
 
     let map f decoder =
-        let open ResultC in
+        let open Results in
         Decoder begin fun value ->
             decode decoder value >>| f
         end
@@ -87,7 +87,7 @@ module Decoder = struct
     let list decoder =
         Decoder begin function
             | `List values ->
-                let open ResultC in
+                let open Results in
                 let push x xs = x :: xs in
 
                 List.fold_right begin fun value acc ->
@@ -101,7 +101,7 @@ module Decoder = struct
     let dict decoder =
         Decoder begin function
             | `Assoc values ->
-                let open ResultC in
+                let open Results in
                 let add key value dct = Dict.add key value dct in
 
                 List.fold_left begin fun dct (key, value) ->
@@ -115,7 +115,7 @@ module Decoder = struct
     let pairs decoder =
         Decoder begin function
             | `Assoc values ->
-                let open ResultC in
+                let open Results in
                 let push key value sofar = (key, value) :: sofar in
 
                 List.fold_right begin fun (key, value) acc ->
@@ -170,7 +170,7 @@ module Decoder = struct
             let values =
                 List.map ( fun decoder -> decode decoder value ) decoders in
             try
-                List.find ResultC.is_ok values
+                List.find Results.is_ok values
             with
                 Not_found -> Result.Error "no suitable decoder chosen"
         end
@@ -218,6 +218,8 @@ module Decoder = struct
 
     let value_of_string s = Yojson.Basic.from_string s
 
+    let value_to_string v = Yojson.Basic.to_string v
+
     let value_to_yojson v = v
 
     let value_of_yojson v = v
@@ -225,39 +227,3 @@ module Decoder = struct
     let decode_string t s =
         decode t @@ value_of_string s
 end
-
-(*
-module Obj = struct
-    open Decoder
-
-    let object1 fn a =
-        fn <$> a
-
-    let object2 fn a b =
-        fn <$> a <*> b
-
-    let object3 fn a b c =
-        fn <$> a <*> b <*> c
-
-    let object4 fn a b c d =
-        fn <$> a <*> b <*> c <*> d
-
-    let object5 fn a b c d e =
-        fn <$> a <*> b <*> c <*> d <*> e
-
-    let object6 fn a b c d e f =
-        fn <$> a <*> b <*> c <*> d <*> e <*> f
-
-    let object7 fn a b c d e f g =
-        fn <$> a <*> b <*> c <*> d <*> e <*> f <*> g
-
-    let object8 fn a b c d e f g h =
-        fn <$> a <*> b <*> c <*> d <*> e <*> f <*> g <*> h
-
-    let object9 fn a b c d e f g h i =
-        fn <$> a <*> b <*> c <*> d <*> e <*> f <*> g <*> h <*> i
-
-end
-
-include Obj
-*)

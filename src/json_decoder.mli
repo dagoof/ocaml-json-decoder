@@ -1,5 +1,3 @@
-(* Json_decoder is a json decoder. yeah *)
-
 module Dict : Map.S with type key = string
 
 type 'a dict = 'a Dict.t
@@ -10,11 +8,13 @@ module Decoder : sig
 
     (* source *)
     val value_of_string : string -> value
+    val value_to_string : value -> string
+
     val value_of_yojson : Yojson.Basic.json -> value
     val value_to_yojson : value -> Yojson.Basic.json
 
-    val decode : 'a t -> value -> ( 'a, string ) Result.result
-    val decode_string : 'a t -> string -> ( 'a, string ) Result.result
+    val decode : 'a t -> value -> ('a, string) Result.result
+    val decode_string : 'a t -> string -> ('a, string) Result.result
 
     (* Primitives *)
     val string : string t
@@ -43,7 +43,7 @@ module Decoder : sig
     (* combinators *)
     val succeed : 'a -> 'a t
     val fail : string -> 'a t
-    val map : ( 'a -> 'b ) -> 'a t -> 'b t
+    val map : ('a -> 'b) -> 'a t -> 'b t
     val and_then : ('a -> 'b t) -> 'a t -> 'b t
     val apply : ('a -> 'b) t -> 'a t -> 'b t
     val (>>=) : 'a t -> ('a -> 'b t) -> 'b t

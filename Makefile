@@ -7,12 +7,15 @@ doc:
 	$(DUNE) build @doc
 
 test:
-	$(DUNE) runtest
+	$(DUNE) runtest -f
 
 install:
-	@echo 'welp'
+	$(DUNE) install
+
+uninstall:
+	$(DUNE) uninstall
 
 clean:
 	$(DUNE) clean
 
-.PHONY: build doc test install clean
+.PHONY: build doc test install uninstall clean

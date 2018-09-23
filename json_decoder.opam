@@ -1,25 +1,21 @@
-opam-version: "1.2"
+opam-version: "2.0"
 name: "json_decoder"
 maintainer: "peter.degroff@gmail.com"
-authors: ["Peter DeGroff"]
+authors: "Peter DeGroff"
 license: "ISC"
 homepage: "https://github.com/dagoof/ocaml-json-decoder"
-bug-reports: "https://github.com/dagoof/ocaml-json-decoder/issues"
-dev-repo: "https://github.com/dagoof/ocaml-json-decoder.git"
 doc: "https://dagoof.github.io/ocaml-json-decoder/doc"
-
-build: [
-  ["dune" "subst"] {pinned}
-  ["dune" "build" "-p" name "-j" jobs]
-]
-
-build-test: [["dune" "runtest" "-p" name "-j" jobs]]
-
+bug-reports: "https://github.com/dagoof/ocaml-json-decoder/issues"
+dev-repo: "git+https://github.com/dagoof/ocaml-json-decoder.git"
 depends: [
+  "ocaml" {>= "4.02.3"}
   "dune" {build}
-  "alcotest" {test}
+  "alcotest" {with-test}
   "result"
   "yojson"
 ]
-
-available: [ ocaml-version >= "4.02.3" ]
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+]

@@ -26,7 +26,7 @@ module Results = struct
   let (<$>) f t = t >>| f
 end
 
-type value = Yojson.Basic.json
+type value = Yojson.Basic.t
 
 type 'a t =
   | Decoder of ( value -> ('a, string) Result.result )

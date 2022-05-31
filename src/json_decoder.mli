@@ -9,8 +9,8 @@ type value
 val value_of_string : string -> value
 val value_to_string : value -> string
 
-val value_of_yojson : Yojson.Basic.json -> value
-val value_to_yojson : value -> Yojson.Basic.json
+val value_of_yojson : Yojson.Basic.t -> value
+val value_to_yojson : value -> Yojson.Basic.t
 
 val decode : 'a t -> value -> ('a, string) Result.result
 val decode_string : 'a t -> string -> ('a, string) Result.result
